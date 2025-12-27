@@ -33,9 +33,15 @@ if [ ! -f "apps.json" ]; then
     exit 1
 fi
 
-# Load environment variables
+# Load environment variables (safely, without executing backticks)
 if [ -f ".env" ]; then
-    source .env
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ $key =~ ^#.*$ ]] && continue
+        [[ -z $key ]] && continue
+        # Export variable
+        export "$key=$value"
+    done < <(grep -v '^\s*$' .env)
     echo "✅ Loaded configuration from .env"
 else
     echo "⚠️  .env file not found, using defaults"

@@ -27,8 +27,14 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Load environment variables
-source .env
+# Load environment variables (safely, without executing backticks)
+while IFS='=' read -r key value; do
+    # Skip comments and empty lines
+    [[ $key =~ ^#.*$ ]] && continue
+    [[ -z $key ]] && continue
+    # Export variable
+    export "$key=$value"
+done < <(grep -v '^\s*$' .env)
 
 # Validate required variables
 if [ -z "$DB_PASSWORD" ] || [ "$DB_PASSWORD" = "YourStrongPasswordHere123!" ]; then
