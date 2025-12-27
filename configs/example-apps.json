@@ -1,0 +1,29 @@
+# Example Apps Configuration
+# Copy this file to apps.json and customize for your setup
+
+[
+  {
+    "url": "https://github.com/frappe/erpnext",
+    "branch": "version-15"
+  },
+  {
+    "url": "https://github.com/frappe/hrms",
+    "branch": "version-15"
+  },
+  {
+    "url": "https://github.com/frappe/payments",
+    "branch": "develop"
+  }
+]
+
+# For private repositories, use Personal Access Token:
+# {
+#   "url": "https://YOUR_GITHUB_TOKEN@github.com/your-org/custom-app.git",
+#   "branch": "main"
+# }
+
+# To generate GitHub token:
+# 1. Go to: https://github.com/settings/tokens
+# 2. Click "Generate new token (classic)"
+# 3. Select scope: repo (Full control of private repositories)
+# 4. Copy token and use in URL above
