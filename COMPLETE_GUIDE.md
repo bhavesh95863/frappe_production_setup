@@ -185,6 +185,7 @@ See [configs/example-apps.json](configs/example-apps.json) for examples.
 | [start.sh](scripts/start.sh) | Start all services | `bash scripts/start.sh` |
 | [stop.sh](scripts/stop.sh) | Stop all services | `bash scripts/stop.sh` |
 | [logs.sh](scripts/logs.sh) | View logs | `bash scripts/logs.sh [SERVICE] [-f]` |
+| [cleanup.sh](scripts/cleanup.sh) | Complete cleanup & removal | `bash scripts/cleanup.sh [--remove-data] [--remove-images] [--remove-docker]` |
 
 ---
 

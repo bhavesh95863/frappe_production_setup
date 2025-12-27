@@ -278,3 +278,155 @@ MIT License - Use freely for personal and commercial projects.
 ---
 
 **Need help?** Check the [troubleshooting](#-troubleshooting) section or refer to the [official documentation](https://github.com/frappe/frappe_docker).
+
+---
+
+## 🗑️ Complete Cleanup & Removal
+
+### When to Use Cleanup
+
+Use the cleanup script when you need to:
+- Start fresh with a new deployment
+- Remove a failed installation
+- Free up disk space
+- Completely remove Docker from server
+- Migrate to a different setup
+
+### Cleanup Options
+
+**Option 1: Remove deployment (keep site data)**
+```bash
+bash scripts/cleanup.sh
+```
+This removes:
+- All Docker containers
+- Docker networks
+- Docker volumes
+- But **preserves** site data for backup/migration
+
+**Option 2: Remove deployment and site data**
+```bash
+bash scripts/cleanup.sh --remove-data
+```
+⚠️ **WARNING:** This deletes all site data including databases and files!
+
+**Option 3: Remove Docker images too**
+```bash
+bash scripts/cleanup.sh --remove-data --remove-images
+```
+Removes everything including built Docker images.
+
+**Option 4: Nuclear option (remove Docker itself)**
+```bash
+bash scripts/cleanup.sh --remove-data --remove-images --remove-docker
+```
+⚠️ **DANGER:** This uninstalls Docker completely from the server!
+
+**Option 5: Force mode (skip confirmations)**
+```bash
+bash scripts/cleanup.sh --remove-data --remove-images --force
+```
+⚠️ Use with extreme caution! No confirmation prompts.
+
+### Safety Features
+
+The cleanup script includes multiple safety features:
+
+1. **Confirmations Required**
+   - Asks "yes" before starting cleanup
+   - Requires typing "DELETE" to remove site data
+   - Requires typing "UNINSTALL" to remove Docker
+
+2. **Preserved by Default**
+   - Site data is NOT deleted unless `--remove-data` is used
+   - Docker images are NOT deleted unless `--remove-images` is used
+   - Docker itself is NOT removed unless `--remove-docker` is used
+
+3. **Summary Report**
+   - Shows what was cleaned up
+   - Shows what was preserved
+   - Displays freed disk space
+
+### Typical Cleanup Scenarios
+
+**Scenario 1: Redeploy on same server**
+```bash
+# Keep site data for migration
+bash scripts/cleanup.sh
+
+# Redeploy
+bash scripts/deploy-production.sh
+
+# Restore sites
+bash scripts/restore.sh site1.com /path/to/backup.sql.gz
+```
+
+**Scenario 2: Complete fresh start**
+```bash
+# Remove everything (asks for confirmation)
+bash scripts/cleanup.sh --remove-data --remove-images
+
+# Install and redeploy
+bash scripts/deploy-production.sh
+bash scripts/create-site.sh newsite.com
+```
+
+**Scenario 3: Remove Docker completely**
+```bash
+# Complete removal including Docker
+bash scripts/cleanup.sh --remove-data --remove-images --remove-docker
+
+# Server is now clean, Docker is uninstalled
+```
+
+**Scenario 4: Free up space but keep deployment**
+```bash
+# Just clean up unused Docker resources
+docker system prune -af --volumes
+
+# Or use cleanup to remove old containers
+bash scripts/cleanup.sh
+bash scripts/start.sh
+```
+
+### What Gets Removed
+
+| Component | Default | --remove-data | --remove-images | --remove-docker |
+|-----------|---------|---------------|-----------------|-----------------|
+| Containers | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| Networks | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| Volumes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| Site Data | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes |
+| Docker Images | ❌ No | ❌ No | ✅ Yes | ✅ Yes |
+| Docker Engine | ❌ No | ❌ No | ❌ No | ✅ Yes |
+
+### Post-Cleanup Steps
+
+After cleanup, depending on what was removed:
+
+**If site data was preserved:**
+```bash
+# Site data is still in /home/frappe/frappe_docker/sites/
+# You can redeploy and restore
+bash scripts/deploy-production.sh
+bash scripts/restore.sh site1.com /path/to/backup.sql.gz
+```
+
+**If everything was removed:**
+```bash
+# Start from scratch
+bash scripts/build-image.sh
+bash scripts/deploy-production.sh
+bash scripts/create-site.sh site1.yourdomain.com
+```
+
+**If Docker was uninstalled:**
+```bash
+# Reinstall Docker first
+sudo bash scripts/install-prerequisites.sh
+# Logout and login
+# Then deploy
+bash scripts/build-image.sh
+bash scripts/deploy-production.sh
+```
+
