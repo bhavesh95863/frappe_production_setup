@@ -36,9 +36,18 @@ if ! docker compose ps --status running | grep -q "backend"; then
     exit 1
 fi
 
-# Load environment variables
+# Load environment variables safely (avoid executing backticks)
 if [ -f ".env" ]; then
-    source .env
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ $key =~ ^#.*$ ]] && continue
+        [[ -z $key ]] && continue
+        # Remove leading/trailing whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        # Export the variable
+        export "$key=$value"
+    done < <(grep -v '^[[:space:]]*$' .env)
 fi
 
 # Get site name
