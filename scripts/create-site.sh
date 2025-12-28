@@ -129,6 +129,10 @@ echo ""
 echo "🔧 Setting as current site..."
 docker compose exec backend bench use "$SITE_NAME"
 
+# Configure HTTPS for production sites
+echo "🔒 Configuring HTTPS..."
+docker compose exec -T backend bench --site "$SITE_NAME" set-config host_name "https://$SITE_NAME"
+
 echo ""
 echo "🌐 Access your site:"
 if [ -n "$SITES" ]; then
