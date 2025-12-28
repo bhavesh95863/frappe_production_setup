@@ -138,6 +138,8 @@ frappe-production-setup/
 │   ├── create-site.sh                # Create new Frappe site (interactive app selection)
 │   ├── drop-site.sh                  # Safely drop/delete a site with backup
 │   ├── add-app.sh                    # Add new app to running production
+│   ├── uninstall-app.sh              # Uninstall app from site with migration
+│   ├── fix-https.sh                  # Diagnose and fix HTTPS/SSL issues
 │   ├── backup.sh                     # Backup all sites
 │   ├── restore.sh                    # Restore from backup
 │   ├── update.sh                     # Update Frappe/ERPNext
@@ -192,6 +194,20 @@ frappe-production-setup/
 ```bash
 # Safely drop a site with optional backup
 ./scripts/drop-site.sh
+```
+
+### Uninstall App from Site
+
+```bash
+# Uninstall an app from a site (with backup and migration)
+./scripts/uninstall-app.sh
+```
+
+### Fix HTTPS/SSL Issues
+
+```bash
+# Diagnose and fix HTTPS/SSL configuration
+./scripts/fix-https.sh
 ```
 
 ### Complete Cleanup
