@@ -91,6 +91,54 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# Pre-flight checks
+echo "🔍 Running pre-flight checks..."
+echo ""
+
+# Check if port 80 is listening
+echo "1️⃣  Checking if port 80 is accessible..."
+if netstat -tuln 2>/dev/null | grep -q ":80 " || ss -tuln 2>/dev/null | grep -q ":80 "; then
+    echo "   ✅ Port 80 is listening"
+else
+    echo "   ⚠️  Port 80 may not be listening"
+fi
+
+# Check if port 443 is listening
+echo "2️⃣  Checking if port 443 is accessible..."
+if netstat -tuln 2>/dev/null | grep -q ":443 " || ss -tuln 2>/dev/null | grep -q ":443 "; then
+    echo "   ✅ Port 443 is listening"
+else
+    echo "   ⚠️  Port 443 may not be listening"
+fi
+
+# Check DNS resolution
+echo "3️⃣  Checking DNS resolution for $SITE_NAME..."
+DNS_IP=$(dig +short "$SITE_NAME" | tail -1)
+if [ -n "$DNS_IP" ]; then
+    echo "   ✅ DNS resolves to: $DNS_IP"
+else
+    echo "   ❌ DNS does not resolve!"
+fi
+
+# Check firewall (ufw)
+echo "4️⃣  Checking firewall..."
+if command -v ufw &> /dev/null; then
+    UFW_STATUS=$(ufw status 2>/dev/null | grep -E "80|443" || echo "")
+    if [ -n "$UFW_STATUS" ]; then
+        echo "   ✅ UFW rules found:"
+        echo "$UFW_STATUS" | sed 's/^/      /'
+    else
+        echo "   ⚠️  No UFW rules for ports 80/443"
+        echo "   Run: sudo ufw allow 80/tcp && sudo ufw allow 443/tcp"
+    fi
+else
+    echo "   ℹ️  UFW not installed"
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
 echo "🔧 Applying HTTPS fixes..."
 echo ""
 
@@ -151,21 +199,31 @@ echo ""
 echo "1. DNS Configuration:"
 echo "   • Verify DNS: dig $SITE_NAME +short"
 echo "   • Should point to this server's IP"
+echo "   • DNS propagation: https://dnschecker.org/#A/$SITE_NAME"
 echo ""
-echo "2. Firewall:"
-echo "   • Port 80 open: sudo ufw allow 80/tcp"
-echo "   • Port 443 open: sudo ufw allow 443/tcp"
+echo "2. Firewall (CRITICAL for SSL):"
+echo "   • Port 80 MUST be open: sudo ufw allow 80/tcp"
+echo "   • Port 443 MUST be open: sudo ufw allow 443/tcp"
+echo "   • Test port 80: curl -I http://$SITE_NAME"
+echo "   • If using cloud provider, check Security Groups/Firewall"
 echo ""
-echo "3. Let's Encrypt:"
+echo "3. Let's Encrypt Certificate:"
 echo "   • Check logs: docker compose logs proxy | grep $SITE_NAME"
-echo "   • Wait 2-3 minutes for certificate generation"
+echo "   • Look for 'Connection refused' errors (means port 80 blocked)"
+echo "   • Wait 2-3 minutes after opening ports"
+echo "   • Restart proxy: docker compose restart proxy"
 echo ""
-echo "4. Force HTTPS in browser:"
+echo "4. Force Certificate Regeneration (if needed):"
+echo "   • docker compose down"
+echo "   • sudo rm -rf cert-data/"
+echo "   • docker compose up -d"
+echo ""
+echo "5. Force HTTPS in browser:"
 echo "   • Clear browser cache"
 echo "   • Try incognito/private mode"
 echo "   • Access: https://$SITE_NAME (with https://)"
 echo ""
-echo "5. Check Traefik certificates:"
+echo "6. Check Traefik certificates:"
 echo "   • docker compose exec proxy ls -la /etc/traefik/certs"
 echo ""
 
