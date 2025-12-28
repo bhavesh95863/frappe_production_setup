@@ -61,6 +61,26 @@ if [ ! -d "../frappe_docker" ]; then
     cd "$PROJECT_DIR"
 fi
 
+# Auto-configure PULL_POLICY for custom images
+if [ -n "$CUSTOM_IMAGE" ]; then
+    # If using custom image, check if it exists locally
+    if docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "^${CUSTOM_IMAGE}:${CUSTOM_TAG:-latest}$"; then
+        # Image exists locally, force pull policy to never
+        export PULL_POLICY="never"
+        echo "✅ Found local custom image: ${CUSTOM_IMAGE}:${CUSTOM_TAG:-latest}"
+    else
+        echo "⚠️  Warning: Custom image ${CUSTOM_IMAGE}:${CUSTOM_TAG:-latest} not found locally"
+        echo "You need to build it first:"
+        echo "  ./scripts/build-image.sh"
+        echo ""
+        read -p "Continue anyway? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+fi
+
 echo "✅ Configuration loaded"
 echo ""
 echo "📋 Deployment Configuration:"
@@ -70,6 +90,7 @@ echo "  SSL Email: ${LETSENCRYPT_EMAIL}"
 echo "  Sites: ${SITES}"
 echo "  Custom Image: ${CUSTOM_IMAGE:-frappe/erpnext}"
 echo "  Custom Tag: ${CUSTOM_TAG:-$ERPNEXT_VERSION}"
+echo "  Pull Policy: ${PULL_POLICY:-always}"
 echo ""
 
 read -p "🚀 Ready to deploy? (y/N): " -n 1 -r
